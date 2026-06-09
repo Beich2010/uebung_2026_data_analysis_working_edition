@@ -884,11 +884,12 @@ import matplotlib.pyplot as plt
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
 
-def _encoding_style(ax, label, color, ylabel=None, rotate_x=0):
+def _encoding_style(ax, label, color, ylabel=None,xlabel="", rotate_x=0):
     """Shared panel style for encoding plots."""
     surf = "#FFFFFF"
     ax.set_facecolor(surf)
     ax.set_ylabel(ylabel or "", fontsize=8, color="#797876", labelpad=6)
+    ax.set_xlabel(xlabel)
     ax.spines[["top", "right", "bottom"]].set_visible(False)
     ax.spines["left"].set_color("#d4d1ca")
     ax.grid(True, axis="y", alpha=0.5)
