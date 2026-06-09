@@ -1303,3 +1303,80 @@ class EncodingFeatureBuilder:
         )
         X_scaled["holiday"] = X_full["holiday"].astype(float).values
         return X_scaled
+    
+
+def plot_cyclic_encoding(series, max_val, encode_fn, unit_label="Value", tick_step=None):
+    """
+    Visualizes any cyclic encoding function as a two-panel plot.
+
+    Parameters
+    ----------
+    series      : array-like  – the values to encode (e.g. hours 0–23)
+    max_val     : int/float   – the period length (e.g. 24 for hours, 7 for weekdays)
+    unit_label  : str         – label for colorbar and x-axis (e.g. "Hour", "Weekday")
+    tick_step   : int         – x-axis tick spacing on right panel (auto if None)
+    encode_fn   : callable    – encoding function with signature fn(series, max_val)
+                                must return (sin_vals, cos_vals)
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    series = np.asarray(series)
+    sin_vals, cos_vals = encode_fn(series, max_val)  # ← hier wird fn aufgerufen
+
+    tick_step = tick_step or max(1, len(series) // 8)
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5.5), facecolor="white")
+
+    # ── Left: Unit Circle ──────────────────────────────────────
+    ax = axes[0]
+    ax.set_facecolor("white")
+    theta = np.linspace(0, 2 * np.pi, 300)
+    ax.plot(np.cos(theta), np.sin(theta), color="#CCCCCC", lw=1.2)
+    ax.axhline(0, color="#CCCCCC", lw=0.8, ls="--")
+    ax.axvline(0, color="#CCCCCC", lw=0.8, ls="--")
+
+    sc = ax.scatter(cos_vals, sin_vals, c=series, cmap="turbo", s=80,
+                    zorder=3, vmin=series.min(), vmax=series.max())
+    cbar = plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.04)
+    cbar.set_label(unit_label, fontsize=11)
+    cbar.ax.tick_params(labelsize=9)
+
+    quarter_vals = [0, max_val // 4, max_val // 2, 3 * max_val // 4]
+    positions    = [("left","center"), ("center","bottom"),
+                    ("right","center"), ("center","top")]
+    for val, (ha, va) in zip(quarter_vals, positions):
+        a = 2 * np.pi * val / max_val
+        ax.annotate(f"{unit_label[0].lower()}={val}",
+                    xy=(np.cos(a), np.sin(a)),
+                    xytext=(np.cos(a) * 1.35, np.sin(a) * 1.35),
+                    fontsize=10, color="#CC0000", fontweight="bold",
+                    ha=ha, va=va,
+                    arrowprops=dict(arrowstyle="->", color="#CC0000", lw=0.8))
+
+    ax.set_xlim(-1.7, 1.7); ax.set_ylim(-1.7, 1.7)
+    ax.set_aspect("equal")
+    ax.set_xlabel(f"cos(2π·x/{max_val})", fontsize=12)
+    ax.set_ylabel(f"sin(2π·x/{max_val})", fontsize=12)
+    ax.set_title(f"Unit Circle: {unit_label}s as (cos, sin)", fontsize=13, fontweight="bold")
+    ax.tick_params(labelsize=10)
+
+    # ── Right: sin & cos curves ────────────────────────────────
+    ax2 = axes[1]
+    ax2.set_facecolor("white")
+    ax2.plot(series, sin_vals, "-o", color="#1f77b4", lw=2.2, ms=5, label="sin  (vertical position)")
+    ax2.plot(series, cos_vals, "-s", color="#ff7f0e", lw=2.2, ms=5, label="cos  (horizontal position)")
+    ax2.axhline(0, color="#CCCCCC", lw=0.8, ls="--")
+    ax2.set_xticks(series[::tick_step])
+    ax2.set_xlim(series.min() - 0.5, series.max() + 0.5)
+    ax2.set_xlabel(unit_label, fontsize=12)
+    ax2.set_ylabel("Encoded Value", fontsize=12)
+    ax2.set_title(f"sin & cos across {unit_label}s  [{encode_fn.__name__}]",
+                  fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=10, loc="upper right", framealpha=0.9)
+    ax2.grid(axis="y", color="#EEEEEE", lw=0.8)
+    ax2.tick_params(labelsize=10)
+
+    fig.suptitle(f"{encode_fn.__name__}(series, max_val={max_val})",
+                 fontsize=14, fontweight="bold", y=1.01)
+    plt.tight_layout()
+    plt.show()
