@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
 
-def _encoding_style(ax, label, color, ylabel=None):
+def _encoding_style(ax, label, color, ylabel=None, rotate_x=0):
     """Shared panel style for encoding plots."""
     surf = "#FFFFFF"
     ax.set_facecolor(surf)
@@ -19,16 +19,17 @@ def _encoding_style(ax, label, color, ylabel=None):
     ax.spines[["top", "right", "bottom"]].set_visible(False)
     ax.spines["left"].set_color("#d4d1ca")
     ax.grid(True, axis="y", alpha=0.5)
-    ax.tick_params(axis="x", which="both", length=0)
+    ax.tick_params(axis="x", which="both", length=0, labelrotation=rotate_x)
+    if rotate_x:
+        plt.setp(ax.get_xticklabels(), ha="right")  # Rechtsbündig bei Schrägstellung
     ax.text(
         0.01, 0.96, label,
         transform=ax.transAxes,
         fontsize=9, fontweight="bold", color=color,
-            va="top", ha="left",
+        va="top", ha="left",
         bbox=dict(boxstyle="round,pad=0.3", facecolor=surf,
                   edgecolor=color, alpha=0.9, linewidth=1),
     )
-
 
 def _encoding_rcparams():
     """Shared rcParams for encoding plots."""
@@ -301,6 +302,7 @@ def plot_holiday_encodings_over_time(
                    color=holiday_orange, alpha=0.07, zorder=0)
 
     ax.legend(fontsize=7, loc="upper right", framealpha=0.0, edgecolor="none", ncol=2)
-    _encoding_style(ax, "Target  (holiday vs. dow)", gold, ylabel="target value")
+    _encoding_style(ax, "Target  (holiday vs. dow)", gold, ylabel="target value", rotate_x=45)
+    
 
     return fig

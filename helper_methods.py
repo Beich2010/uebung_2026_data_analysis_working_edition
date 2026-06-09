@@ -4,6 +4,35 @@
 #
 #
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+#
+#
+#
+#
+#
+#
+
+
+
+
 from ipywidgets import interact, IntSlider, fixed
 import matplotlib.pyplot as plt
 import numpy as np
@@ -158,7 +187,7 @@ def plot_forecasts_for_day(
     # holiday label
     if show_hol_onehot and X_full.loc[x, "holiday"].values.astype(bool).any():
         ax_fc.set_title(
-            f"Forecast Comparison – {x[0].date()}  🗓 Holiday",
+            f"Forecast Comparison – {x[0].date()} is Holiday",
             fontsize=11, fontweight="bold", color="#28251d", loc="left",
         )
     else:
@@ -287,6 +316,7 @@ def interactive_forecast_plot(
     X_cyclic_full=None,
     X_scaled_full=None,
     context_hours=48,
+    max_context_hours=24 * 7 * 4 * 4 * 2,
 ):
     """
     Interactive slider to browse forecast plots per day.
@@ -316,7 +346,7 @@ def interactive_forecast_plot(
         X_target_full=fixed(X_target_full),
         X_cyclic_full=fixed(X_cyclic_full),
         X_scaled_full=fixed(X_scaled_full),
-        context_hours=IntSlider(min=0, max=168, step=24, value=context_hours,
+        context_hours=IntSlider(min=0, max=max_context_hours, step=24, value=context_hours,
                                 description="Context h"),
     )
 #
@@ -433,7 +463,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 
-def evaluate_chronos2_native(y, X_covariates, cv, pipeline, prediction_length, use_covariates=True, label="Chronos2"):
+def evaluate_chronos2_native(y, X_covariates, cv, pipeline, prediction_length, use_covariates=True, ctx_length = 24 * 7 * 4 * 4 * 2,label="Chronos2"):
     from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
     records = []
@@ -458,7 +488,7 @@ def evaluate_chronos2_native(y, X_covariates, cv, pipeline, prediction_length, u
         })
 
         # get the last 16 weeks of the training data as context and the next 24 hours as future for prediction
-        context_df = context_df.iloc[-(24 * 7 * 4 * 4 * 2):]  
+        context_df = context_df.iloc[-ctx_length:]  
         future_df = future_df.iloc[:prediction_length] 
 
         if use_covariates:  
@@ -473,7 +503,7 @@ def evaluate_chronos2_native(y, X_covariates, cv, pipeline, prediction_length, u
             )
         else:
             pred_df = pipeline.predict_df(
-                    context_df,
+                    context_df[["id", "timestamp", "target"]],  # only use the target column for context
                     prediction_length=prediction_length,
                     quantile_levels=[0.1, 0.5, 0.9],
                     id_column="id",              

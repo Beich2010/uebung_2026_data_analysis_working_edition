@@ -1,0 +1,245 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.fw{font-family:'Inter',sans-serif;background:#f7f6f2;padding:16px;border-radius:14px;border:2px solid #d4d1ca;color:#28251d;max-width:100%;}
+.fw-title{font-size:1.05rem;font-weight:800;margin-bottom:3px;}
+.fw-sub{font-size:.8rem;color:#7a7974;margin-bottom:12px;}
+.fw-meta{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.fw-score{font-size:.8rem;font-weight:600;color:#7a7974;white-space:nowrap;}
+.fw-badge{background:#4664AA;color:#fff;padding:2px 9px;border-radius:999px;font-size:.74rem;}
+.fw-prog-wrap{flex:1;height:6px;background:#e8e5e0;border-radius:3px;overflow:hidden;}
+.fw-prog{height:100%;background:#4664AA;border-radius:3px;transition:width .35s;width:0;}
+
+.fw-layout{display:flex;gap:12px;align-items:flex-start;}
+
+/* Pool: fixed height + scroll */
+.fw-pool-col{width:210px;flex-shrink:0;display:flex;flex-direction:column;}
+.fw-pool-label{font-size:.73rem;font-weight:600;color:#7a7974;margin-bottom:6px;flex-shrink:0;}
+.fw-pool{
+  display:flex;flex-direction:column;gap:4px;
+  height:480px; overflow-y:auto;
+  padding:8px;background:#f0ede8;
+  border:2px dashed #d4d1ca;border-radius:10px;
+  transition:border-color .2s,background .2s;
+}
+.fw-pool::-webkit-scrollbar{width:5px;}
+.fw-pool::-webkit-scrollbar-track{background:transparent;}
+.fw-pool::-webkit-scrollbar-thumb{background:#c8c5bf;border-radius:99px;}
+.fw-pool.drag-over{border-color:#4664AA;background:rgba(70,100,170,.05);}
+
+/* Pipeline */
+.fw-pipe-col{flex:1;min-width:0;}
+.fw-pipe-with-arrow{display:flex;align-items:stretch;}
+.fw-raw{display:flex;align-items:center;justify-content:center;padding:6px 5px;border:2px solid #404040;border-radius:8px;font-size:.6rem;font-weight:700;text-align:center;background:#f7f6f2;line-height:1.4;min-width:40px;flex-shrink:0;color:#404040;margin-right:5px;}
+.fw-arrowbox{display:flex;align-items:center;color:#404040;font-size:.85rem;margin:0 3px;flex-shrink:0;}
+.fw-forecast{display:flex;align-items:center;justify-content:center;padding:6px 5px;border:2px solid #404040;border-radius:8px;font-size:.6rem;font-weight:700;text-align:center;background:#f7f6f2;line-height:1.4;min-width:46px;flex-shrink:0;color:#404040;margin-left:5px;}
+.fw-pipe-outer{border:2px solid #404040;border-radius:10px;background:#fff;overflow:hidden;flex:1;}
+.fw-pipe-header{background:#404040;color:#fff;text-align:center;font-size:.74rem;font-weight:700;padding:5px 8px;letter-spacing:.04em;}
+.fw-pipe-inner{display:flex;align-items:stretch;}
+.fw-sec{flex:1;border-right:1px solid #d0ccc8;display:flex;flex-direction:column;min-width:0;}
+.fw-sec:last-child{border-right:none;}
+.fw-sec-title{font-size:.63rem;font-weight:800;text-align:center;padding:5px 4px;color:#fff;line-height:1.35;flex-shrink:0;}
+
+/* Drop zone */
+.fw-zone{
+  flex:1;min-height:240px;
+  padding:5px;display:flex;flex-direction:column;gap:3px;
+  overflow-y:auto;
+  transition:background .2s,outline .2s;
+  outline:2px dashed transparent;outline-offset:-4px;
+}
+.fw-zone::-webkit-scrollbar{width:4px;}
+.fw-zone::-webkit-scrollbar-thumb{background:#d0ccc8;border-radius:99px;}
+.fw-zone.drag-over{background:rgba(70,100,170,.07);outline-color:#4664AA;}
+
+/* Items */
+.fw-item{
+  display:flex;align-items:flex-start;gap:5px;
+  padding:5px 7px;background:#fbfbf9;
+  border:1px solid #d4d1ca;border-radius:6px;
+  font-size:.7rem;font-weight:500;
+  cursor:grab;user-select:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+  transition:box-shadow .15s,transform .15s,opacity .15s;
+  line-height:1.35;flex-shrink:0;
+}
+.fw-item .em{flex-shrink:0;padding-top:1px;}
+.fw-item:hover{box-shadow:0 3px 8px rgba(0,0,0,.09);transform:translateY(-1px);}
+.fw-item.dragging{opacity:.3;cursor:grabbing;}
+.fw-item.correct{border-color:#437a22!important;background:#d4dfcc!important;}
+.fw-item.wrong{border-color:#a12c7b!important;background:#e0ced7!important;}
+
+.fw-fb{display:none;align-items:flex-start;gap:7px;padding:9px 12px;border-radius:8px;font-size:.8rem;font-weight:500;margin-top:10px;line-height:1.5;}
+.fw-fb.ok{display:flex;background:#d4dfcc;color:#437a22;}
+.fw-fb.err{display:flex;background:#e0ced7;color:#a12c7b;}
+
+.fw-hbtn{font-size:.74rem;color:#4664AA;cursor:pointer;text-decoration:underline;background:none;border:none;padding:2px 0;margin-top:7px;display:block;}
+.fw-hint{display:none;font-size:.74rem;color:#964219;margin-top:5px;padding:7px 10px;background:rgba(150,66,25,.07);border-radius:7px;line-height:1.8;}.fw-hint.vis{display:block;}
+
+.fw-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.fw-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 16px;border:none;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.fw-prim{background:#4664AA;color:#fff;}.fw-prim:hover{background:#354e8a;}
+.fw-ghost{background:transparent;color:#7a7974;border:1px solid #d4d1ca;}.fw-ghost:hover{background:#f0ede8;color:#28251d;}
+.fw-done{display:none;flex-direction:column;align-items:center;text-align:center;padding:28px 14px;background:#f9f8f5;border:1px solid #d4d1ca;border-radius:10px;margin-top:10px;}.fw-done.vis{display:flex;}
+</style>
+
+<div class='fw' id='fw'>
+  <div class='fw-title'>📊 Forecasting Pipeline — Drop Zone Challenge</div>
+  <div class='fw-sub'>Drag each card into the correct pipeline section. The pool is scrollable.</div>
+  <div class='fw-meta'>
+    <div class='fw-score'>Placed: <span class='fw-badge' id='fw-cnt'>0 / 27</span></div>
+    <div class='fw-prog-wrap'><div class='fw-prog' id='fw-prog'></div></div>
+  </div>
+
+  <div class='fw-layout'>
+    <div class='fw-pool-col'>
+      <div class='fw-pool-label'>🎯 Items to place:</div>
+      <div class='fw-pool' id='fw-pool'></div>
+    </div>
+    <div class='fw-pipe-col'>
+      <div class='fw-pipe-with-arrow'>
+        <div class='fw-raw'>Raw<br>Time<br>Series<br>Data</div>
+        <div class='fw-arrowbox'>▶</div>
+        <div class='fw-pipe-outer'>
+          <div class='fw-pipe-header'>Forecasting Pipeline</div>
+          <div class='fw-pipe-inner' id='fw-pipe-inner'></div>
+        </div>
+        <div class='fw-arrowbox'>▶</div>
+        <div class='fw-forecast'>Time<br>Series<br>Fore-<br>cast</div>
+      </div>
+    </div>
+  </div>
+
+  <button class='fw-hbtn' id='fw-hbtn'>💡 Show hint</button>
+  <div class='fw-hint' id='fw-h'>
+    <strong>Data Pre-processing:</strong> Detect outliers · Impute missing values · Test for stationarity · Transform to stationarity · Scale time series<br>
+    <strong>Feature Engineering:</strong> Lag features · Cyclic features · Transformation features · Exogenous features · Filter / Wrapper / Embedded / Hybrid selection · PCA aggregation<br>
+    <strong>Hyperparameter Optimization:</strong> AIC/BIC criteria · MAE/MSE error measures · Grid/Random search · Bayesian opt. · Nonlinear programming · Heuristics · Meta-heuristics · Diagnostic checking<br>
+    <strong>Forecasting Method Selection:</strong> Heuristic · Empirical · Decision model-based algorithm selection<br>
+    <strong>Forecast Ensembling:</strong> Averaging · Weighting
+  </div>
+  <div class='fw-fb' id='fw-fb'></div>
+
+  <div class='fw-acts'>
+    <button class='fw-btn fw-prim' id='fw-check'>✔ Check Placement</button>
+    <button class='fw-btn fw-ghost' id='fw-reset'>↺ Reset All</button>
+  </div>
+  <div class='fw-done' id='fw-done'>
+    <div style='font-size:2.3rem;margin-bottom:8px'>🏆</div>
+    <div style='font-size:1rem;font-weight:700;margin-bottom:5px'>Pipeline complete!</div>
+    <div style='font-size:.84rem;color:#7a7974;margin-bottom:16px'>All 27 methods correctly placed.</div>
+    <button class='fw-btn fw-prim' id='fw-restart'>↺ Try Again</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const PIPELINE = [{"id": "s1", "title": "Data\nPre-processing", "color": "#2c5f8a"}, {"id": "s2", "title": "Feature\nEngineering", "color": "#2c7a5f"}, {"id": "s3", "title": "Hyperparameter\nOptimization", "color": "#7a4a2c"}, {"id": "s4", "title": "Forecasting\nMethod Selection", "color": "#5a2c7a"}, {"id": "s5", "title": "Forecast\nEnsembling", "color": "#7a2c2c"}];
+  const ITEMS    = [{"id": "outliers", "emoji": "🔍", "text": "Detect & replace outlier values"}, {"id": "missing", "emoji": "📅", "text": "Impute missing values"}, {"id": "testing", "emoji": "🧪", "text": "Test time series for stationarity (ADF, KPSS, …)"}, {"id": "transformation", "emoji": "🔄", "text": "Transform to stationarity (differencing, log, Box-Cox, STL)"}, {"id": "scaling", "emoji": "📏", "text": "Scale time series (min-max, Z-score, robust)"}, {"id": "lag", "emoji": "↩️", "text": "Extract lag features (past values as inputs)"}, {"id": "cyclic", "emoji": "🔁", "text": "Encode cyclic features (hour, weekday via sin/cos or one-hot)"}, {"id": "transformation_feat", "emoji": "🛠️", "text": "Derive transformation features (derivatives, moving avg., decomposition)"}, {"id": "exogenous", "emoji": "🌐", "text": "Include exogenous features (weather, holidays, …)"}, {"id": "filter", "emoji": "🔽", "text": "Feature selection: filter method (rank by statistical measure)"}, {"id": "wrapper", "emoji": "🎁", "text": "Feature selection: wrapper method (evaluate on validation set)"}, {"id": "embedded", "emoji": "🔗", "text": "Feature selection: embedded method (selection during model training)"}, {"id": "hybrid", "emoji": "⚡", "text": "Feature selection: hybrid method (combine filter + wrapper)"}, {"id": "aggregation", "emoji": "📦", "text": "Aggregate features into lower-dimensional representation (e.g. PCA)"}, {"id": "info_criteria", "emoji": "📊", "text": "Evaluate model fit via information criteria (AIC, BIC)"}, {"id": "error_measures", "emoji": "📉", "text": "Evaluate forecast accuracy via error measures (MAE, MSE, RMSE)"}, {"id": "grid_search", "emoji": "🗺️", "text": "Optimize hyperparameters via grid / random search"}, {"id": "bayesian", "emoji": "🎯", "text": "Optimize hyperparameters via Bayesian optimization"}, {"id": "nonlinear", "emoji": "📐", "text": "Optimize hyperparameters via nonlinear programming"}, {"id": "heuristics", "emoji": "💡", "text": "Optimize hyperparameters via heuristics (e.g. evolutionary algorithms)"}, {"id": "meta", "emoji": "🤖", "text": "Optimize hyperparameters via meta-heuristics (e.g. PSO, GA)"}, {"id": "diagnostic", "emoji": "🩺", "text": "Diagnostic checking: validate residuals after model fitting"}, {"id": "heuristic_alg", "emoji": "🔧", "text": "Select forecasting method via heuristic rules"}, {"id": "empirical_alg", "emoji": "🧬", "text": "Select forecasting method via empirical evaluation on validation data"}, {"id": "model_based", "emoji": "🏗️", "text": "Select forecasting method via decision model (meta-learning)"}, {"id": "averaging", "emoji": "⚖️", "text": "Ensemble forecasts by averaging multiple model outputs"}, {"id": "weighting", "emoji": "🏋️", "text": "Ensemble forecasts by weighted combination of model outputs"}];
+  const CORRECT  = {"outliers": "s1", "missing": "s1", "testing": "s1", "transformation": "s1", "scaling": "s1", "lag": "s2", "cyclic": "s2", "transformation_feat": "s2", "exogenous": "s2", "filter": "s2", "wrapper": "s2", "embedded": "s2", "hybrid": "s2", "aggregation": "s2", "info_criteria": "s3", "error_measures": "s3", "grid_search": "s3", "bayesian": "s3", "nonlinear": "s3", "heuristics": "s3", "meta": "s3", "diagnostic": "s3", "heuristic_alg": "s4", "empirical_alg": "s4", "model_based": "s4", "averaging": "s5", "weighting": "s5"};
+  let dId=null, dZ=null;
+  const $=id=>document.getElementById(id);
+  const TOTAL=ITEMS.length;
+
+  function addDrop(el) {
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
+    el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('drag-over');});
+    el.addEventListener('drop',e=>{
+      e.preventDefault();el.classList.remove('drag-over');
+      if(!dId)return;
+      const src=document.getElementById(dZ);
+      const drag=src?src.querySelector('[data-id="'+dId+'"]'):null;
+      if(!drag)return;
+      el.appendChild(drag);
+      dId=null;dZ=null;
+      clearHL();updateProg();
+    });
+  }
+
+  function buildPipeline() {
+    const inner=$('fw-pipe-inner');
+    inner.innerHTML='';
+    PIPELINE.forEach(sec=>{
+      const col=document.createElement('div');
+      col.className='fw-sec';
+      const t=document.createElement('div');
+      t.className='fw-sec-title';
+      t.style.background=sec.color;
+      t.textContent=sec.title;
+      col.appendChild(t);
+      const z=document.createElement('div');
+      z.className='fw-zone';z.id=sec.id;
+      addDrop(z);
+      col.appendChild(z);
+      inner.appendChild(col);
+    });
+  }
+
+  function mkEl(item) {
+    const el=document.createElement('div');
+    el.className='fw-item';el.draggable=true;el.dataset.id=item.id;
+    el.innerHTML='<span class="em">'+item.emoji+'</span><span>'+item.text+'</span>';
+    el.addEventListener('dragstart',e=>{
+      dId=item.id;
+      dZ=el.parentElement?el.parentElement.id:'fw-pool';
+      el.classList.add('dragging');
+      e.dataTransfer.setData('text/plain',item.id);
+    });
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    return el;
+  }
+
+  function clearHL(){
+    document.querySelectorAll('.fw-item').forEach(i=>i.classList.remove('correct','wrong'));
+    $('fw-fb').className='fw-fb';
+  }
+
+  function updateProg(){
+    let placed=0;
+    ITEMS.forEach(it=>{
+      const el=document.querySelector('[data-id="'+it.id+'"]');
+      if(el&&el.parentElement&&el.parentElement.id!=='fw-pool')placed++;
+    });
+    $('fw-cnt').textContent=placed+' / '+TOTAL;
+    $('fw-prog').style.width=Math.round(placed/TOTAL*100)+'%';
+  }
+
+  function init(){
+    buildPipeline();
+    const pool=$('fw-pool');
+    pool.innerHTML='';
+    $('fw-fb').className='fw-fb';
+    $('fw-done').classList.remove('vis');
+    addDrop(pool);
+    [...ITEMS].sort(()=>Math.random()-.5).forEach(it=>pool.appendChild(mkEl(it)));
+    updateProg();
+  }
+
+  $('fw-check').addEventListener('click',()=>{
+    let wrong=0,correct=0;
+    ITEMS.forEach(it=>{
+      const el=document.querySelector('[data-id="'+it.id+'"]');
+      if(!el)return;
+      const pid=el.parentElement?el.parentElement.id:'';
+      el.classList.remove('correct','wrong');
+      if(pid===CORRECT[it.id]){el.classList.add('correct');correct++;}
+      else{el.classList.add('wrong');wrong++;}
+    });
+    const fb=$('fw-fb');
+    if(wrong===0){
+      fb.className='fw-fb ok';
+      fb.textContent='🏆 Perfect! All '+TOTAL+' items correctly placed!';
+      setTimeout(()=>$('fw-done').classList.add('vis'),500);
+    } else {
+      fb.className='fw-fb err';
+      fb.innerHTML='❌ <strong>'+correct+' of '+TOTAL+'</strong> correct. Red items are in the wrong section!';
+    }
+  });
+
+  $('fw-reset').addEventListener('click',init);
+  $('fw-restart').addEventListener('click',init);
+  $('fw-hbtn').addEventListener('click',()=>$('fw-h').classList.toggle('vis'));
+
+  init();
+})();
+</script>
