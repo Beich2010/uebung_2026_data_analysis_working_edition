@@ -509,6 +509,7 @@ def evaluate_chronos2_native(y, X_covariates, cv, pipeline, prediction_length, u
             pred_df = pipeline.predict_df(
                     context_df[["id", "timestamp", "target"]],  # only use the target column for context
                     prediction_length=prediction_length,
+                    future_df=None,  # no future covariates
                     quantile_levels=[0.1, 0.5, 0.9],
                     id_column="id",              
                     timestamp_column="timestamp",
@@ -1174,7 +1175,7 @@ def plot_holiday_encodings_over_time(
                    color=holiday_orange, alpha=0.07, zorder=0)
 
     ax.legend(fontsize=7, loc="upper right", framealpha=0.0, edgecolor="none", ncol=2)
-    _encoding_style(ax, "Target  (holiday vs. dow)", gold, ylabel="target value", rotate_x=45)
+    _encoding_style(ax, "Target  (holiday vs. dow)", gold, ylabel="target value", xlabel="Date", rotate_x=45)
     
 
     return fig
